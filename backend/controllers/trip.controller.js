@@ -54,6 +54,18 @@ const dispatchTrip = async (req, res) => {
       if (!existingTrip) throw new Error("Trip not found");
       if (existingTrip.status !== 'DRAFT') throw new Error("Only DRAFT trips can be dispatched");
 
+      const vehicle = await tx.vehicle.findUnique({ where: { id: existingTrip.vehicleId } });
+      const driver = await tx.driver.findUnique({ where: { id: existingTrip.driverId } });
+
+      if (!vehicle) throw new Error("Vehicle not found");
+      if (vehicle.status === 'IN_SHOP') throw new Error("Vehicle is currently in shop for maintenance and cannot be dispatched");
+      if (vehicle.status === 'RETIRED') throw new Error("Vehicle has been retired");
+
+      if (!driver) throw new Error("Driver not found");
+      if (driver.status === 'SUSPENDED') throw new Error("Driver is suspended");
+      if (driver.status === 'OFF_DUTY') throw new Error("Driver is off duty");
+      if (new Date(driver.licenseExpiryDate) < new Date()) throw new Error("Driver's license is expired");
+
       const updatedTrip = await tx.trip.update({
         where: { id },
         data: {
@@ -110,11 +122,20 @@ const completeTrip = async (req, res) => {
         }
       });
 
+      // Check if there is an active maintenance log for this vehicle
+      const activeMaintenance = await tx.maintenanceLog.findFirst({
+        where: {
+          vehicleId: existingTrip.vehicleId,
+          status: 'IN_PROGRESS'
+        }
+      });
+      const vehicleStatus = activeMaintenance ? 'IN_SHOP' : 'AVAILABLE';
+
       // Safely increment the odometer using Prisma math
       await tx.vehicle.update({
         where: { id: existingTrip.vehicleId },
         data: { 
-          status: 'AVAILABLE',
+          status: vehicleStatus,
           odometer: { increment: parseFloat(actualDistance) }
         }
       });
@@ -154,9 +175,18 @@ const cancelTrip = async (req, res) => {
         }
       });
 
+      // Check if there is an active maintenance log for this vehicle
+      const activeMaintenance = await tx.maintenanceLog.findFirst({
+        where: {
+          vehicleId: existingTrip.vehicleId,
+          status: 'IN_PROGRESS'
+        }
+      });
+      const vehicleStatus = activeMaintenance ? 'IN_SHOP' : 'AVAILABLE';
+
       await tx.vehicle.update({
         where: { id: existingTrip.vehicleId },
-        data: { status: 'AVAILABLE' }
+        data: { status: vehicleStatus }
       });
 
       await tx.driver.update({

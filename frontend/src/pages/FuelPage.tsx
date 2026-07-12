@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Fuel, AlertCircle } from 'lucide-react';
-import { getFuelLogs, createFuelLog, type FuelLog, type CreateFuelData } from '../api/fuel';
+import { Plus, Loader2, Fuel, AlertCircle, Pencil } from 'lucide-react';
+import { getFuelLogs, createFuelLog, updateFuelLog, type FuelLog, type CreateFuelData } from '../api/fuel';
 import { getVehicles, type Vehicle } from '../api/vehicles';
 import DataTable, { type Column } from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -8,6 +8,14 @@ import { useAuth } from '../context/AuthContext';
 
 const inputClass =
   'w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
+
+const emptyForm = {
+  vehicleId: '',
+  fillDate: '',
+  quantity: 0,
+  totalCost: 0,
+  odometerReading: 0,
+};
 
 export default function FuelPage() {
   const { isReadOnly } = useAuth();
@@ -18,15 +26,10 @@ export default function FuelPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState<FuelLog | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [form, setForm] = useState<CreateFuelData>({
-    vehicleId: '',
-    fillDate: '',
-    quantity: 0,
-    totalCost: 0,
-    odometerReading: 0,
-  });
+  const [form, setForm] = useState<CreateFuelData>(emptyForm);
 
   /* ── Data fetching ──────────────────────────────────────────────── */
 
@@ -52,22 +55,54 @@ export default function FuelPage() {
     fetchData();
   }, []);
 
-  /* ── Create handler ─────────────────────────────────────────────── */
+  /* ── Save handler ─────────────────────────────────────────────── */
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      await createFuelLog(form);
+      setError(null);
+      if (editingLog) {
+        await updateFuelLog(editingLog.id, form);
+      } else {
+        await createFuelLog(form);
+      }
       setModalOpen(false);
-      setForm({ vehicleId: '', fillDate: '', quantity: 0, totalCost: 0, odometerReading: 0 });
+      setEditingLog(null);
+      setForm(emptyForm);
       await fetchData();
-    } catch (err) {
-      console.error('Failed to create fuel log:', err);
-      setError('Failed to create fuel log.');
+    } catch (err: any) {
+      console.error('Failed to save fuel log:', err);
+      setError(err?.response?.data?.error || 'Failed to save fuel log.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const openEdit = (log: FuelLog) => {
+    setEditingLog(log);
+    setForm({
+      vehicleId: log.vehicleId,
+      fillDate: log.fillDate.split('T')[0],
+      quantity: log.quantity,
+      totalCost: log.totalCost,
+      odometerReading: log.odometerReading,
+    });
+    setError(null);
+    setModalOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditingLog(null);
+    setForm(emptyForm);
+    setError(null);
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setEditingLog(null);
+    setForm(emptyForm);
   };
 
   /* ── Table columns ──────────────────────────────────────────────── */
@@ -117,6 +152,26 @@ export default function FuelPage() {
       ),
     },
   ];
+
+  if (!isReadOnly) {
+    columns.push({
+      key: 'actions',
+      header: 'Actions',
+      sortable: false,
+      render: (row) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            openEdit(row);
+          }}
+          className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
+          title="Edit"
+        >
+          <Pencil size={16} />
+        </button>
+      ),
+    });
+  }
 
   /* ── Loading state ──────────────────────────────────────────────── */
 
@@ -168,7 +223,7 @@ export default function FuelPage() {
 
         {!isReadOnly && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={openCreate}
             className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2"
           >
             <Plus size={18} />
@@ -192,9 +247,9 @@ export default function FuelPage() {
         emptyMessage="No fuel logs found"
       />
 
-      {/* ── Create Modal ───────────────────────────────────────────── */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Log Fuel" size="lg">
-        <form onSubmit={handleCreate} className="space-y-4">
+      {/* ── Create / Edit Modal ───────────────────────────────────────────── */}
+      <Modal isOpen={modalOpen} onClose={handleClose} title={editingLog ? 'Edit Fuel Log' : 'Log Fuel'} size="lg">
+        <form onSubmit={handleSave} className="space-y-4">
           {/* Vehicle */}
           <div>
             <label className="block text-sm font-medium text-surface-300 mb-1.5">Vehicle</label>
@@ -202,7 +257,8 @@ export default function FuelPage() {
               value={form.vehicleId}
               onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
               required
-              className={inputClass}
+              disabled={!!editingLog}
+              className={`${inputClass} disabled:opacity-50`}
             >
               <option value="">Select a vehicle</option>
               {vehicles.map((v) => (
@@ -273,7 +329,7 @@ export default function FuelPage() {
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
+              onClick={handleClose}
               className="px-4 py-2.5 rounded-lg text-sm font-medium text-surface-300 hover:text-white hover:bg-surface-800 transition-colors"
             >
               Cancel
@@ -284,7 +340,7 @@ export default function FuelPage() {
               className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2 disabled:opacity-50"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-              {submitting ? 'Saving…' : 'Log Fuel'}
+              {submitting ? 'Saving…' : editingLog ? 'Save Changes' : 'Log Fuel'}
             </button>
           </div>
         </form>

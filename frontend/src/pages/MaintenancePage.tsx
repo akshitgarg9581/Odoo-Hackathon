@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Wrench, CheckCircle, AlertCircle } from 'lucide-react';
-import { getMaintenanceLogs, createMaintenanceLog, completeMaintenance, type MaintenanceLog, type CreateMaintenanceData } from '../api/maintenance';
+import { Plus, Loader2, Wrench, CheckCircle, AlertCircle, Pencil } from 'lucide-react';
+import { getMaintenanceLogs, createMaintenanceLog, completeMaintenance, updateMaintenanceLog, type MaintenanceLog, type CreateMaintenanceData } from '../api/maintenance';
 import { getVehicles, type Vehicle } from '../api/vehicles';
 import DataTable, { type Column } from '../components/DataTable';
 import StatusBadge from '../components/StatusBadge';
@@ -19,6 +19,14 @@ const SERVICE_TYPES = [
 const inputClass =
   'w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
 
+const emptyForm = {
+  vehicleId: '',
+  serviceType: '',
+  cost: 0,
+  serviceDate: '',
+  description: '',
+};
+
 export default function MaintenancePage() {
   const { isReadOnly } = useAuth();
 
@@ -28,15 +36,10 @@ export default function MaintenancePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState<MaintenanceLog | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [form, setForm] = useState<CreateMaintenanceData>({
-    vehicleId: '',
-    serviceType: '',
-    cost: 0,
-    serviceDate: '',
-    description: '',
-  });
+  const [form, setForm] = useState<CreateMaintenanceData>(emptyForm);
 
   /* ── Data fetching ──────────────────────────────────────────────── */
 
@@ -62,22 +65,54 @@ export default function MaintenancePage() {
     fetchData();
   }, []);
 
-  /* ── Create handler ─────────────────────────────────────────────── */
+  /* ── Save handler ─────────────────────────────────────────────── */
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      await createMaintenanceLog(form);
+      setError(null);
+      if (editingLog) {
+        await updateMaintenanceLog(editingLog.id, form);
+      } else {
+        await createMaintenanceLog(form);
+      }
       setModalOpen(false);
-      setForm({ vehicleId: '', serviceType: '', cost: 0, serviceDate: '', description: '' });
+      setEditingLog(null);
+      setForm(emptyForm);
       await fetchData();
-    } catch (err) {
-      console.error('Failed to create maintenance log:', err);
-      setError('Failed to create maintenance log.');
+    } catch (err: any) {
+      console.error('Failed to save maintenance log:', err);
+      setError(err?.response?.data?.error || 'Failed to save maintenance log.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const openEdit = (log: MaintenanceLog) => {
+    setEditingLog(log);
+    setForm({
+      vehicleId: log.vehicleId,
+      serviceType: log.serviceType,
+      cost: log.cost,
+      serviceDate: log.serviceDate.split('T')[0],
+      description: log.description,
+    });
+    setError(null);
+    setModalOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditingLog(null);
+    setForm(emptyForm);
+    setError(null);
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setEditingLog(null);
+    setForm(emptyForm);
   };
 
   /* ── Complete handler ───────────────────────────────────────────── */
@@ -93,11 +128,12 @@ export default function MaintenancePage() {
     }
   };
 
-  /* ── Available vehicles for modal (exclude IN_SHOP and RETIRED) ─ */
+  /* ── Available vehicles for modal (exclude IN_SHOP and RETIRED unless editing) ─ */
 
-  const availableVehicles = vehicles.filter(
-    (v) => v.status !== 'IN_SHOP' && v.status !== 'RETIRED',
-  );
+  const availableVehicles = vehicles.filter((v) => {
+    if (editingLog && editingLog.vehicleId === v.id) return true;
+    return v.status !== 'IN_SHOP' && v.status !== 'RETIRED';
+  });
 
   /* ── Table columns ──────────────────────────────────────────────── */
 
@@ -146,18 +182,32 @@ export default function MaintenancePage() {
       header: 'Actions',
       sortable: false,
       render: (row) => {
-        if (isReadOnly || row.status !== 'IN_PROGRESS') return null;
+        if (isReadOnly) return null;
         return (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleComplete(row.id);
-            }}
-            className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-all inline-flex items-center gap-1.5"
-          >
-            <CheckCircle size={14} />
-            Complete
-          </button>
+          <div className="flex items-center gap-2">
+            {row.status === 'IN_PROGRESS' && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleComplete(row.id);
+                }}
+                className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-all inline-flex items-center gap-1.5"
+              >
+                <CheckCircle size={14} />
+                Complete
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openEdit(row);
+              }}
+              className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
+              title="Edit"
+            >
+              <Pencil size={16} />
+            </button>
+          </div>
         );
       },
     },
@@ -213,7 +263,7 @@ export default function MaintenancePage() {
 
         {!isReadOnly && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={openCreate}
             className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2"
           >
             <Plus size={18} />
@@ -237,9 +287,9 @@ export default function MaintenancePage() {
         emptyMessage="No maintenance logs found"
       />
 
-      {/* ── Create Modal ───────────────────────────────────────────── */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Log Maintenance" size="lg">
-        <form onSubmit={handleCreate} className="space-y-4">
+      {/* ── Create / Edit Modal ───────────────────────────────────────────── */}
+      <Modal isOpen={modalOpen} onClose={handleClose} title={editingLog ? 'Edit Maintenance Log' : 'Log Maintenance'} size="lg">
+        <form onSubmit={handleSave} className="space-y-4">
           {/* Vehicle */}
           <div>
             <label className="block text-sm font-medium text-surface-300 mb-1.5">Vehicle</label>
@@ -247,7 +297,8 @@ export default function MaintenancePage() {
               value={form.vehicleId}
               onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
               required
-              className={inputClass}
+              disabled={!!editingLog}
+              className={`${inputClass} disabled:opacity-50`}
             >
               <option value="">Select a vehicle</option>
               {availableVehicles.map((v) => (
@@ -320,7 +371,7 @@ export default function MaintenancePage() {
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
+              onClick={handleClose}
               className="px-4 py-2.5 rounded-lg text-sm font-medium text-surface-300 hover:text-white hover:bg-surface-800 transition-colors"
             >
               Cancel
@@ -331,7 +382,7 @@ export default function MaintenancePage() {
               className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2 disabled:opacity-50"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-              {submitting ? 'Saving…' : 'Log Maintenance'}
+              {submitting ? 'Saving…' : editingLog ? 'Save Changes' : 'Log Maintenance'}
             </button>
           </div>
         </form>

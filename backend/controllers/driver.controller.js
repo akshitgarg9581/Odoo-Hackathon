@@ -15,17 +15,19 @@ const createDriver = async (req, res) => {
       return res.status(400).json({ error: "Please enter a valid license expiry date" });
     }
 
+    const trimmedLicense = licenseNumber.trim();
+
     const existing = await prisma.driver.findUnique({
-      where: { licenseNumber },
+      where: { licenseNumber: trimmedLicense },
     });
     if (existing) {
-      return res.status(400).json({ error: "A driver with this license number already exists." });
+      return res.status(400).json({ error: "Driver already exists with the same license number." });
     }
 
     const driver = await prisma.driver.create({
       data: {
         name,
-        licenseNumber,
+        licenseNumber: trimmedLicense,
         licenseCategory,
         contactNumber: contactNumber || "",
         licenseExpiryDate: expiryDate,

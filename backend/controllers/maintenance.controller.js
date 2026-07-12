@@ -97,4 +97,31 @@ const getMaintenanceLogs = async (req, res) => {
   }
 };
 
-module.exports = { createMaintenance, completeMaintenance, getMaintenanceLogs };
+const updateMaintenance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { serviceType, cost, serviceDate, description } = req.body;
+
+    const data = {};
+    if (serviceType) data.serviceType = serviceType;
+    if (cost !== undefined) {
+      const c = parseFloat(cost);
+      if (isNaN(c) || c < 0) return res.status(400).json({ error: "Cost must be a positive number" });
+      data.cost = c;
+    }
+    if (serviceDate) data.serviceDate = new Date(serviceDate);
+    if (description !== undefined) data.description = description;
+
+    const log = await prisma.maintenanceLog.update({
+      where: { id },
+      data
+    });
+
+    res.json(log);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { createMaintenance, completeMaintenance, getMaintenanceLogs, updateMaintenance };

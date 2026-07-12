@@ -25,3 +25,5 @@ export const getFuelLogs = (vehicleId?: string) =>
   api.get<FuelLog[]>('/fuel', { params: vehicleId ? { vehicleId } : {} });
 export const createFuelLog = (data: CreateFuelData) =>
   api.post<FuelLog>('/fuel', data);
+export const updateFuelLog = (id: string, data: Partial<CreateFuelData>) =>
+  api.put<FuelLog>(`/fuel/${id}`, data);

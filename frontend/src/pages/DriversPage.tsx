@@ -12,13 +12,13 @@ import {
   deleteDriver,
 } from '../api/drivers';
 
-const LICENSE_CATEGORIES = ['A', 'B', 'C', 'D', 'E'] as const;
+const LICENSE_CATEGORIES = ['Class A CDL', 'Class B CDL', 'Class C CDL', 'LMV', 'HMV'] as const;
 const DRIVER_STATUSES: Driver['status'][] = ['AVAILABLE', 'ON_TRIP', 'OFF_DUTY', 'SUSPENDED'];
 
 const emptyForm = {
   name: '',
   licenseNumber: '',
-  licenseCategory: 'B',
+  licenseCategory: 'LMV' as typeof LICENSE_CATEGORIES[number],
   licenseExpiryDate: '',
   contactNumber: '',
   status: 'AVAILABLE' as Driver['status'],
@@ -93,7 +93,7 @@ export default function DriversPage() {
     setForm({
       name: driver.name,
       licenseNumber: driver.licenseNumber,
-      licenseCategory: driver.licenseCategory,
+      licenseCategory: driver.licenseCategory as typeof LICENSE_CATEGORIES[number],
       licenseExpiryDate: driver.licenseExpiryDate?.split('T')[0] ?? '',
       contactNumber: driver.contactNumber,
       status: driver.status,
@@ -127,6 +127,7 @@ export default function DriversPage() {
     } catch (err: any) {
       setModalError(
         err?.response?.data?.message ||
+          err?.response?.data?.error ||
           err?.message ||
           'Something went wrong. Please try again.',
       );
@@ -358,12 +359,12 @@ export default function DriversPage() {
               </label>
               <select
                 value={form.licenseCategory}
-                onChange={(e) => setField('licenseCategory', e.target.value)}
+                onChange={(e) => setField('licenseCategory', e.target.value as typeof LICENSE_CATEGORIES[number])}
                 className={inputCls}
               >
                 {LICENSE_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
-                    Category {cat}
+                    {cat}
                   </option>
                 ))}
               </select>

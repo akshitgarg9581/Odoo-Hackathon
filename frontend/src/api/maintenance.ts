@@ -28,3 +28,5 @@ export const createMaintenanceLog = (data: CreateMaintenanceData) =>
   api.post<MaintenanceLog>('/maintenance', data);
 export const completeMaintenance = (id: string) =>
   api.patch<MaintenanceLog>(`/maintenance/${id}/complete`);
+export const updateMaintenanceLog = (id: string, data: Partial<CreateMaintenanceData>) =>
+  api.put<MaintenanceLog>(`/maintenance/${id}`, data);

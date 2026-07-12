@@ -62,4 +62,39 @@ const getFuelLogs = async (req, res) => {
   }
 };
 
-module.exports = { createFuelLog, getFuelLogs };
+const updateFuelLog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fillDate, quantity, totalCost, odometerReading } = req.body;
+
+    const data = {};
+    if (fillDate) data.fillDate = new Date(fillDate);
+    if (quantity !== undefined) {
+      const q = parseFloat(quantity);
+      if (isNaN(q) || q <= 0) return res.status(400).json({ error: "Quantity must be a positive number" });
+      data.quantity = q;
+    }
+    if (totalCost !== undefined) {
+      const c = parseFloat(totalCost);
+      if (isNaN(c) || c <= 0) return res.status(400).json({ error: "Total cost must be a positive number" });
+      data.totalCost = c;
+    }
+    if (odometerReading !== undefined) {
+      const o = parseFloat(odometerReading);
+      if (isNaN(o) || o < 0) return res.status(400).json({ error: "Odometer reading must be a non-negative number" });
+      data.odometerReading = o;
+    }
+
+    const fuelLog = await prisma.fuelLog.update({
+      where: { id },
+      data
+    });
+
+    res.json(fuelLog);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { createFuelLog, getFuelLogs, updateFuelLog };
