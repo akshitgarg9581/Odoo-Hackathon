@@ -47,6 +47,7 @@ model Vehicle {
   status           VehicleStatus @default(AVAILABLE)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  trips            Trip[]
 
   @@map("vehicles")
 }
@@ -69,6 +70,37 @@ model Driver {
   status            DriverStatus @default(AVAILABLE)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+  trips             Trip[]
 
   @@map("drivers")
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+model Trip {
+  id              String     @id @default(uuid())
+  vehicleId       String
+  driverId        String
+  source          String
+  destination     String
+  cargoWeight     Float
+  plannedDistance Float
+  actualDistance  Float?
+  fuelConsumed    Float?
+  status          TripStatus @default(DRAFT)
+  dispatchTime    DateTime?
+  completeTime    DateTime?
+  cancelTime      DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  driver  Driver  @relation(fields: [driverId], references: [id])
+
+  @@map("trips")
 }
