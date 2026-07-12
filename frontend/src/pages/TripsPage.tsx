@@ -6,7 +6,7 @@ import DataTable, { type Column } from '../components/DataTable';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Play, Check, XCircle, Trash2, Loader2, Route as RouteIcon, AlertCircle } from 'lucide-react';
+import { Plus, Search, Play, Check, XCircle, Trash2, Loader2, Route as RouteIcon, AlertCircle, Filter } from 'lucide-react';
 
 const TABS = ['ALL', 'DRAFT', 'DISPATCHED', 'COMPLETED', 'CANCELLED'];
 
@@ -193,14 +193,14 @@ export default function TripsPage() {
         <div className="flex gap-2 items-center">
           {t.status === 'DRAFT' && (
             <>
-              <button onClick={() => openConfirm('dispatch', t.id)} className="px-3 py-1.5 rounded-md bg-blue-500/10 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-all flex items-center gap-1" title="Dispatch"><Play size={14}/> Dispatch</button>
-              <button onClick={() => openConfirm('delete', t.id)} className="px-3 py-1.5 rounded-md bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-all" title="Delete"><Trash2 size={14}/></button>
+              <button onClick={() => openConfirm('dispatch', t.id)} className="px-3 py-1.5 rounded-md bg-accent/10 text-accent text-xs font-medium hover:bg-accent/20 transition-all flex items-center gap-1" title="Dispatch"><Play size={14} className="stroke-[2.5]" /> Dispatch</button>
+              <button onClick={() => openConfirm('delete', t.id)} className="px-3 py-1.5 rounded-md bg-danger/10 text-danger text-xs font-medium hover:bg-danger/20 transition-all" title="Delete"><Trash2 size={14}/></button>
             </>
           )}
           {t.status === 'DISPATCHED' && (
             <>
-              <button onClick={() => { setCompleteForm(prev => ({ ...prev, id: t.id })); setActionError(null); setIsCompleteModalOpen(true); }} className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-all flex items-center gap-1" title="Complete"><Check size={14}/> Complete</button>
-              <button onClick={() => openConfirm('cancel', t.id)} className="px-3 py-1.5 rounded-md bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-all flex items-center gap-1" title="Cancel"><XCircle size={14}/> Cancel</button>
+              <button onClick={() => { setCompleteForm(prev => ({ ...prev, id: t.id })); setActionError(null); setIsCompleteModalOpen(true); }} className="px-3 py-1.5 rounded-md bg-success/10 text-success text-xs font-medium hover:bg-success/20 transition-all flex items-center gap-1" title="Complete"><Check size={14} className="stroke-[2.5]" /> Complete</button>
+              <button onClick={() => openConfirm('cancel', t.id)} className="px-3 py-1.5 rounded-md bg-danger/10 text-danger text-xs font-medium hover:bg-danger/20 transition-all flex items-center gap-1" title="Cancel"><XCircle size={14}/> Cancel</button>
             </>
           )}
         </div>
@@ -208,71 +208,78 @@ export default function TripsPage() {
     });
   }
 
-  const inputClass = "w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm";
-  const primaryBtn = "px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 disabled:opacity-50";
+  const inputClass = "w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm";
+  const primaryBtn = "px-4 py-2.5 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50";
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-500/10 rounded-lg text-brand-500">
-            <RouteIcon size={24} />
+          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+            <RouteIcon size={20} />
           </div>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">Trips</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-surface-800 text-surface-300 text-xs font-medium">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold text-text-primary tracking-tight">Trips</h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-accent/10 text-accent text-xs font-semibold">
                 {trips.length} total
               </span>
             </div>
-            <p className="text-sm text-surface-400">Manage route planning and dispatching</p>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Manage route planning and dispatching</p>
           </div>
         </div>
         {!isReadOnly && (
-          <button onClick={() => { setIsCreateModalOpen(true); setActionError(null); }} className={primaryBtn}>
-            <Plus size={18} />
+          <button onClick={() => { setIsCreateModalOpen(true); setActionError(null); }} className="px-5 py-2 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+            <Plus size={16} className="stroke-[2.5]" />
             Create Trip
           </button>
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-surface-900/50 p-2 rounded-xl border border-surface-800">
-        <div className="flex overflow-x-auto gap-1 w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar">
+      <div className="flex flex-col gap-3 w-full">
+        <div className="flex overflow-x-auto gap-2 w-full pb-1 hide-scrollbar">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap tracking-wide ${
                 activeTab === tab 
-                  ? 'bg-brand-500 text-white shadow-md' 
-                  : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800'
+                  ? 'bg-text-primary text-bg-surface shadow-sm' 
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-elevated'
               }`}
             >
               {tab}
             </button>
           ))}
         </div>
-        <div className="relative w-full sm:w-64">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-500" />
-          <input
-            type="text"
-            placeholder="Search trips..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={`${inputClass} pl-10`}
-          />
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              placeholder="Search trips..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm shadow-sm"
+            />
+          </div>
+          <button className="px-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary font-medium text-sm hover:bg-bg-elevated transition-colors inline-flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <Filter size={16} className="text-text-muted stroke-[2]" />
+            Filters
+          </button>
         </div>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-brand-500" />
+          <Loader2 size={32} className="animate-spin text-accent" />
         </div>
       ) : error ? (
-        <div className="glass rounded-xl p-8 text-center border-red-500/20">
-          <AlertCircle size={48} className="mx-auto text-red-500 mb-4 opacity-80" />
-          <h3 className="text-lg font-medium text-white mb-2">Failed to load trips</h3>
-          <p className="text-surface-400 mb-4">{error}</p>
+        <div className="card p-8 text-center border-danger/20">
+          <AlertCircle size={48} className="mx-auto text-danger mb-4 opacity-80" />
+          <h3 className="text-lg font-medium text-text-primary mb-2">Failed to load trips</h3>
+          <p className="text-text-muted mb-4">{error}</p>
           <button onClick={fetchData} className={primaryBtn}>Retry</button>
         </div>
       ) : (
@@ -282,7 +289,7 @@ export default function TripsPage() {
       {/* Create Modal */}
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Trip" size="lg">
         {actionError && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm flex items-start gap-2 font-medium">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <span>{actionError}</span>
           </div>
@@ -290,14 +297,14 @@ export default function TripsPage() {
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Vehicle</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Vehicle</label>
               <select required value={createForm.vehicleId} onChange={e => setCreateForm({...createForm, vehicleId: e.target.value})} className={inputClass}>
                 <option value="">Select Available Vehicle</option>
                 {availableVehicles.map(v => <option key={v.id} value={v.id}>{v.registrationNo} ({v.nameModel})</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Driver</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Driver</label>
               <select required value={createForm.driverId} onChange={e => setCreateForm({...createForm, driverId: e.target.value})} className={inputClass}>
                 <option value="">Select Available Driver</option>
                 {availableDrivers.map(d => <option key={d.id} value={d.id}>{d.name} ({d.licenseCategory})</option>)}
@@ -306,29 +313,29 @@ export default function TripsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Source</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Source</label>
               <input type="text" required value={createForm.source} onChange={e => setCreateForm({...createForm, source: e.target.value})} className={inputClass} placeholder="Origin location" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Destination</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Destination</label>
               <input type="text" required value={createForm.destination} onChange={e => setCreateForm({...createForm, destination: e.target.value})} className={inputClass} placeholder="Destination location" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Cargo Weight (kg)</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Cargo Weight (kg)</label>
               <input type="number" required min="0" step="0.1" value={createForm.cargoWeight} onChange={e => setCreateForm({...createForm, cargoWeight: e.target.value})} className={inputClass} />
               {selectedVehicle && (
-                <p className="text-xs mt-1 text-surface-400">Max capacity: <span className="font-medium text-white">{selectedVehicle.maxLoadCapacity} kg</span></p>
+                <p className="text-xs mt-1 text-text-muted">Max capacity: <span className="font-semibold text-text-primary">{selectedVehicle.maxLoadCapacity} kg</span></p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Planned Distance (km)</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Planned Distance (km)</label>
               <input type="number" required min="0" step="0.1" value={createForm.plannedDistance} onChange={e => setCreateForm({...createForm, plannedDistance: e.target.value})} className={inputClass} />
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-surface-700 text-surface-300 font-medium text-sm hover:bg-surface-800 transition-all">Cancel</button>
+            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all">Cancel</button>
             <button type="submit" disabled={actionLoading} className={primaryBtn}>
               {actionLoading ? <Loader2 size={16} className="animate-spin" /> : 'Create Trip'}
             </button>
@@ -339,27 +346,27 @@ export default function TripsPage() {
       {/* Complete Modal */}
       <Modal isOpen={isCompleteModalOpen} onClose={() => setIsCompleteModalOpen(false)} title="Complete Trip">
         {actionError && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm flex items-start gap-2 font-medium">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <span>{actionError}</span>
           </div>
         )}
         <form onSubmit={handleCompleteSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Actual Distance (km)</label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Actual Distance (km)</label>
             <input type="number" required min="0" step="0.1" value={completeForm.actualDistance} onChange={e => setCompleteForm({...completeForm, actualDistance: e.target.value})} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Fuel Consumed (L)</label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Fuel Consumed (L)</label>
             <input type="number" required min="0" step="0.1" value={completeForm.fuelConsumed} onChange={e => setCompleteForm({...completeForm, fuelConsumed: e.target.value})} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Revenue Generated (₹) <span className="text-surface-500 font-normal">(Optional)</span></label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Revenue Generated (₹) <span className="text-text-muted font-normal">(Optional)</span></label>
             <input type="number" min="0" step="0.01" value={completeForm.revenue} onChange={e => setCompleteForm({...completeForm, revenue: e.target.value})} className={inputClass} />
           </div>
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={() => setIsCompleteModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-surface-700 text-surface-300 font-medium text-sm hover:bg-surface-800 transition-all">Cancel</button>
-            <button type="submit" disabled={actionLoading} className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-medium text-sm hover:from-emerald-500 hover:to-emerald-400 transition-all shadow-lg flex items-center gap-2">
+            <button type="button" onClick={() => setIsCompleteModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all">Cancel</button>
+            <button type="submit" disabled={actionLoading} className="px-4 py-2.5 rounded-lg bg-success text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
               {actionLoading ? <Loader2 size={16} className="animate-spin" /> : 'Mark as Completed'}
             </button>
           </div>
@@ -369,16 +376,16 @@ export default function TripsPage() {
       {/* Confirm Action Modal */}
       <Modal isOpen={isConfirmModalOpen} onClose={() => setIsConfirmModalOpen(false)} title="Confirm Action">
         {actionError && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm flex items-start gap-2 font-medium">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <span>{actionError}</span>
           </div>
         )}
-        <p className="text-surface-300">Are you sure you want to {confirmAction?.type} this trip?</p>
+        <p className="text-text-muted font-medium">Are you sure you want to <span className="font-bold text-text-primary">{confirmAction?.type}</span> this trip?</p>
         <div className="pt-6 flex justify-end gap-3">
-          <button type="button" onClick={() => setIsConfirmModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-surface-700 text-surface-300 font-medium text-sm hover:bg-surface-800 transition-all">No, Cancel</button>
-          <button onClick={handleConfirmAction} disabled={actionLoading} className={`px-4 py-2.5 rounded-lg text-white font-medium text-sm transition-all shadow-lg flex items-center gap-2 ${
-            confirmAction?.type === 'dispatch' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-red-600 hover:bg-red-500'
+          <button type="button" onClick={() => setIsConfirmModalOpen(false)} className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all">No, Cancel</button>
+          <button onClick={handleConfirmAction} disabled={actionLoading} className={`px-4 py-2.5 rounded-lg text-white font-medium text-sm transition-all shadow-lg flex items-center gap-2 hover:opacity-90 ${
+            confirmAction?.type === 'dispatch' ? 'bg-accent' : 'bg-danger'
           }`}>
             {actionLoading ? <Loader2 size={16} className="animate-spin" /> : `Yes, ${confirmAction?.type}`}
           </button>

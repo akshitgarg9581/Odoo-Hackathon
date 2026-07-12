@@ -48,44 +48,44 @@ export default function LoginPage() {
   const updateField = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const inputClass = 'w-full px-4 py-3 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
+  const inputClass = 'w-full px-4 py-3 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm';
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-surface-950">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-bg-base">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
       </div>
 
       {/* Login card */}
       <div className="relative w-full max-w-md mx-4 animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-lg shadow-brand-500/25 mb-4">
-            <Truck size={28} className="text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 mb-4">
+            <Truck size={28} className="text-accent" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">TransitOps</h1>
-          <p className="text-surface-400 text-sm mt-1">Smart Transport Operations Platform</p>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">TransitOps</h1>
+          <p className="text-text-muted text-sm mt-1 font-medium">Smart Transport Operations Platform</p>
         </div>
 
         {/* Card */}
-        <div className="glass rounded-2xl p-8">
+        <div className="card rounded-2xl p-8">
           {/* Tab toggle */}
-          <div className="flex gap-1 p-1 rounded-lg bg-surface-900/80 mb-6">
+          <div className="flex gap-1 p-1 rounded-lg bg-bg-surface border border-border-theme mb-6">
             <button
               onClick={() => { setIsSignup(false); setError(''); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                !isSignup ? 'bg-brand-500 text-white shadow-md' : 'text-surface-400 hover:text-surface-200'
+              className={`flex-1 py-2 text-sm font-semibold tracking-wide rounded-md transition-all ${
+                !isSignup ? 'bg-bg-elevated text-text-primary shadow-md border border-border-theme' : 'text-text-muted hover:text-text-primary'
               }`}
             >
               Sign In
             </button>
             <button
               onClick={() => { setIsSignup(true); setError(''); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                isSignup ? 'bg-brand-500 text-white shadow-md' : 'text-surface-400 hover:text-surface-200'
+              className={`flex-1 py-2 text-sm font-semibold tracking-wide rounded-md transition-all ${
+                isSignup ? 'bg-bg-elevated text-text-primary shadow-md border border-border-theme' : 'text-text-muted hover:text-text-primary'
               }`}
             >
               Sign Up
@@ -94,7 +94,7 @@ export default function LoginPage() {
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in">
+            <div className="mb-4 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm font-medium animate-fade-in">
               {error}
             </div>
           )}
@@ -102,7 +102,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignup && (
               <div>
-                <label className="block text-sm font-medium text-surface-300 mb-1.5">Full Name</label>
+                <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Full Name</label>
                 <input
                   type="text"
                   required
@@ -115,7 +115,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Email</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Email</label>
               <input
                 type="email"
                 required
@@ -127,7 +127,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Password</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -141,7 +141,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-500 hover:text-surface-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -150,7 +150,7 @@ export default function LoginPage() {
 
             {isSignup && (
               <div>
-                <label className="block text-sm font-medium text-surface-300 mb-1.5">Role</label>
+                <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Role</label>
                 <select
                   value={form.role}
                   onChange={(e) => updateField('role', e.target.value)}
@@ -168,7 +168,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold text-sm hover:from-brand-500 hover:to-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-accent text-[#F5F5F6] font-semibold text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
               {loading ? (
                 <Loader2 size={18} className="animate-spin" />

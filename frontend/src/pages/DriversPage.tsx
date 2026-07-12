@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Search, Pencil, Trash2, Loader2, Users } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Loader2, Users, Filter } from 'lucide-react';
 import DataTable, { type Column } from '../components/DataTable';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -156,7 +156,7 @@ export default function DriversPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const inputCls =
-    'w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
+    'w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm';
 
   /* ── columns ── */
   const columns = useMemo<Column<Driver>[]>(() => {
@@ -169,7 +169,7 @@ export default function DriversPage() {
         header: 'License Expiry',
         sortable: true,
         render: (d) => (
-          <span className={isExpired(d.licenseExpiryDate) ? 'text-red-400 font-medium' : ''}>
+          <span className={isExpired(d.licenseExpiryDate) ? 'text-danger font-medium' : ''}>
             {formatDate(d.licenseExpiryDate)}
           </span>
         ),
@@ -183,16 +183,16 @@ export default function DriversPage() {
           const score = d.safetyScore;
           const color =
             score >= 80
-              ? 'bg-emerald-500'
+              ? 'bg-success'
               : score >= 60
-                ? 'bg-amber-500'
-                : 'bg-red-500';
+                ? 'bg-warning'
+                : 'bg-danger';
           const trackColor =
             score >= 80
-              ? 'bg-emerald-500/20'
+              ? 'bg-success/20'
               : score >= 60
-                ? 'bg-amber-500/20'
-                : 'bg-red-500/20';
+                ? 'bg-warning/20'
+                : 'bg-danger/20';
           return (
             <div className="flex items-center gap-2.5">
               <div className={`w-20 h-2 rounded-full ${trackColor}`}>
@@ -201,7 +201,7 @@ export default function DriversPage() {
                   style={{ width: `${score}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-surface-400">{score}</span>
+              <span className="text-xs font-medium text-text-muted">{score}</span>
             </div>
           );
         },
@@ -226,7 +226,7 @@ export default function DriversPage() {
                 e.stopPropagation();
                 openEdit(d);
               }}
-              className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-surface-800 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-accent hover:bg-bg-elevated transition-colors"
               title="Edit"
             >
               <Pencil size={15} />
@@ -236,7 +236,7 @@ export default function DriversPage() {
                 e.stopPropagation();
                 setDeleteTarget(d);
               }}
-              className="p-1.5 rounded-lg text-surface-400 hover:text-red-400 hover:bg-surface-800 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-bg-elevated transition-colors"
               title="Delete"
             >
               <Trash2 size={15} />
@@ -253,54 +253,56 @@ export default function DriversPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-brand-500/10">
-            <Users className="text-brand-400" size={22} />
+          <div className="p-2 rounded-xl bg-accent/10">
+            <Users className="text-accent" size={20} />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold text-white">Drivers</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400">
+              <h1 className="text-2xl font-bold text-text-primary tracking-tight">Drivers</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent/10 text-accent">
                 {drivers.length}
               </span>
             </div>
-            <p className="text-sm text-surface-500 mt-0.5">Manage your driver fleet</p>
+            <p className="text-xs text-text-muted mt-0.5 font-medium">Manage your driver fleet</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-surface-500"
-            />
-            <input
-              type="text"
-              placeholder="Search drivers..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm w-64"
-            />
-          </div>
+        {!isReadOnly && (
+          <button
+            onClick={openCreate}
+            className="px-5 py-2 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm"
+          >
+            <Plus size={16} className="stroke-[2.5]" />
+            Add Driver
+          </button>
+        )}
+      </div>
 
-          {!isReadOnly && (
-            <button
-              onClick={openCreate}
-              className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Add Driver
-            </button>
-          )}
+      {/* ── Search & Filters ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Search drivers..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm shadow-sm"
+          />
         </div>
+        <button className="px-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary font-medium text-sm hover:bg-bg-elevated transition-colors inline-flex items-center gap-2 shadow-sm whitespace-nowrap">
+          <Filter size={16} className="text-text-muted stroke-[2]" />
+          Filters
+        </button>
       </div>
 
       {/* Table / Loading */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <Loader2 size={32} className="animate-spin text-brand-400" />
+          <Loader2 size={32} className="animate-spin text-accent" />
         </div>
       ) : (
         <DataTable
@@ -318,15 +320,15 @@ export default function DriversPage() {
       >
         <div className="space-y-4">
           {modalError && (
-            <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm font-medium">
               {modalError}
             </div>
           )}
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">
-              Name <span className="text-red-400">*</span>
+            <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
+              Name <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -339,8 +341,8 @@ export default function DriversPage() {
 
           {/* License Number */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">
-              License Number <span className="text-red-400">*</span>
+            <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
+              License Number <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -354,8 +356,8 @@ export default function DriversPage() {
           {/* License Category + Expiry row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">
-                License Category <span className="text-red-400">*</span>
+              <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
+                License Category <span className="text-danger">*</span>
               </label>
               <select
                 value={form.licenseCategory}
@@ -370,8 +372,8 @@ export default function DriversPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">
-                License Expiry <span className="text-red-400">*</span>
+              <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
+                License Expiry <span className="text-danger">*</span>
               </label>
               <input
                 type="date"
@@ -384,8 +386,8 @@ export default function DriversPage() {
 
           {/* Contact Number */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">
-              Contact Number <span className="text-red-400">*</span>
+            <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
+              Contact Number <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -399,7 +401,7 @@ export default function DriversPage() {
           {/* Status (edit only) */}
           {editing && (
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">
+              <label className="block text-sm font-semibold text-text-muted mb-1.5 tracking-wide">
                 Status
               </label>
               <select
@@ -428,7 +430,7 @@ export default function DriversPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
             >
               {saving && <Loader2 size={16} className="animate-spin" />}
               {editing ? 'Save Changes' : 'Create Driver'}
@@ -445,9 +447,9 @@ export default function DriversPage() {
         size="sm"
       >
         <div className="space-y-5">
-          <p className="text-sm text-surface-300">
+          <p className="text-sm text-text-muted font-medium">
             Are you sure you want to delete{' '}
-            <span className="text-white font-medium">{deleteTarget?.name}</span>? This action
+            <span className="text-text-primary font-semibold">{deleteTarget?.name}</span>? This action
             cannot be undone.
           </p>
           <div className="flex justify-end gap-3">
@@ -461,7 +463,7 @@ export default function DriversPage() {
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="px-4 py-2.5 rounded-lg bg-red-500/10 text-red-400 font-medium text-sm hover:bg-red-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-danger/10 text-danger font-medium text-sm hover:bg-danger/20 transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {deleting && <Loader2 size={16} className="animate-spin" />}
               Delete

@@ -1,26 +1,57 @@
 import type { ReactNode } from 'react';
 
 interface KPICardProps {
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   value: string | number;
   subtitle?: string;
-  trend?: 'up' | 'down' | 'neutral';
-  accentColor?: string;
+  subtitleIcon?: ReactNode;
+  isHero?: boolean;
+  accentColor?: 'blue' | 'green' | 'amber' | 'red' | 'none';
 }
 
-export default function KPICard({ icon, label, value, subtitle, accentColor = 'brand-500' }: KPICardProps) {
+export default function KPICard({ 
+  icon, 
+  label, 
+  value, 
+  subtitle, 
+  subtitleIcon,
+  isHero = false,
+  accentColor = 'none'
+}: KPICardProps) {
+  
+  const borderColors = {
+    blue: 'border-l-accent',
+    green: 'border-l-success',
+    amber: 'border-l-warning',
+    red: 'border-l-danger',
+    none: 'border-l-transparent'
+  };
+
+  const textColors = {
+    blue: 'text-accent',
+    green: 'text-success',
+    amber: 'text-warning',
+    red: 'text-danger',
+    none: 'text-text-muted'
+  };
+
   return (
-    <div className="glass rounded-xl p-5 hover:border-brand-500/30 transition-all duration-300 group animate-fade-in">
-      <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <p className="text-sm text-surface-400 font-medium">{label}</p>
-          <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-surface-500">{subtitle}</p>}
-        </div>
-        <div className={`p-2.5 rounded-lg bg-${accentColor}/10 text-${accentColor} group-hover:scale-110 transition-transform duration-300`}>
-          {icon}
-        </div>
+    <div className={`card p-5 flex flex-col justify-between animate-fade-in border-l-4 ${borderColors[accentColor]} ${isHero ? 'md:col-span-2' : ''}`}>
+      <div className="flex items-center gap-2 mb-3 text-text-muted">
+        {icon && <div className="text-text-muted">{icon}</div>}
+        <h3 className="text-xs font-semibold tracking-wide text-text-muted">{label}</h3>
+      </div>
+      <div>
+        <p className={`${isHero ? 'text-4xl' : 'text-3xl'} font-bold tracking-tight text-text-primary`}>
+          {value}
+        </p>
+        {subtitle && (
+          <div className={`flex items-center gap-1.5 mt-2.5 text-xs font-medium ${textColors[accentColor]}`}>
+            {subtitleIcon && subtitleIcon}
+            <span>{subtitle}</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Search, Pencil, Trash2, Loader2, Truck } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Loader2, Truck, Filter } from 'lucide-react';
 import DataTable, { type Column } from '../components/DataTable';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -18,7 +18,7 @@ const VEHICLE_TYPES = ['Truck', 'Van', 'Bus', 'Trailer'] as const;
 const VEHICLE_STATUSES = ['AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED'] as const;
 
 const INPUT_CLASS =
-  'w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
+  'w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm';
 
 const INITIAL_FORM = {
   registrationNo: '',
@@ -191,7 +191,7 @@ export default function VehiclesPage() {
       {
         key: 'registrationNo',
         header: 'Registration No',
-        render: (v) => <span className="font-mono text-surface-100">{v.registrationNo}</span>,
+        render: (v) => <span className="font-mono text-text-muted">{v.registrationNo}</span>,
       },
       {
         key: 'nameModel',
@@ -201,8 +201,8 @@ export default function VehiclesPage() {
         key: 'type',
         header: 'Type',
         render: (v) => (
-          <span className="inline-flex items-center gap-1.5 text-surface-300">
-            <Truck size={14} className="text-surface-500" />
+          <span className="inline-flex items-center gap-1.5 text-text-primary">
+            <Truck size={14} className="text-text-muted" />
             {v.type}
           </span>
         ),
@@ -241,7 +241,7 @@ export default function VehiclesPage() {
                 e.stopPropagation();
                 openEdit(v);
               }}
-              className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
               title="Edit"
             >
               <Pencil size={16} />
@@ -251,7 +251,7 @@ export default function VehiclesPage() {
                 e.stopPropagation();
                 openDelete(v);
               }}
-              className="p-1.5 rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
               title="Delete"
             >
               <Trash2 size={16} />
@@ -270,8 +270,8 @@ export default function VehiclesPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-brand-400" />
-          <p className="text-surface-400 text-sm">Loading vehicles…</p>
+          <Loader2 className="h-10 w-10 animate-spin text-accent" />
+          <p className="text-text-muted text-sm font-medium">Loading vehicles…</p>
         </div>
       </div>
     );
@@ -284,33 +284,36 @@ export default function VehiclesPage() {
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-surface-50 lg:text-3xl">Vehicles</h1>
-          <span className="inline-flex items-center justify-center rounded-full bg-brand-500/15 px-2.5 py-0.5 text-xs font-semibold text-brand-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Vehicles</h1>
+          <span className="inline-flex items-center justify-center rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-accent">
             {vehicles.length}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-500" />
-            <input
-              type="text"
-              placeholder="Search by registration or model…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-64 pl-9 pr-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm"
-            />
-          </div>
+        {!isReadOnly && (
+          <button onClick={openCreate} className="px-5 py-2 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2 shadow-sm">
+            <Plus size={16} className="stroke-[2.5]" />
+            Add Vehicle
+          </button>
+        )}
+      </div>
 
-          {/* Add button */}
-          {!isReadOnly && (
-            <button onClick={openCreate} className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2">
-              <Plus size={16} />
-              Add Vehicle
-            </button>
-          )}
+      {/* ── Search & Filters ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Search by registration or model…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm shadow-sm"
+          />
         </div>
+        <button className="px-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary font-medium text-sm hover:bg-bg-elevated transition-colors inline-flex items-center gap-2 shadow-sm whitespace-nowrap">
+          <Filter size={16} className="text-text-muted stroke-[2]" />
+          Filters
+        </button>
       </div>
 
       {/* ── Data Table ─────────────────────────────────────────────── */}
@@ -337,7 +340,7 @@ export default function VehiclesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Registration No */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Registration No
               </label>
               <input
@@ -353,7 +356,7 @@ export default function VehiclesPage() {
 
             {/* Model */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Model
               </label>
               <input
@@ -369,7 +372,7 @@ export default function VehiclesPage() {
 
             {/* Type */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Type
               </label>
               <select
@@ -388,7 +391,7 @@ export default function VehiclesPage() {
 
             {/* Max Load Capacity */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Max Load Capacity (kg)
               </label>
               <input
@@ -405,7 +408,7 @@ export default function VehiclesPage() {
 
             {/* Odometer */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Odometer (km)
               </label>
               <input
@@ -422,7 +425,7 @@ export default function VehiclesPage() {
 
             {/* Acquisition Cost */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Acquisition Cost (₹)
               </label>
               <input
@@ -440,7 +443,7 @@ export default function VehiclesPage() {
             {/* Status (edit only) */}
             {editingVehicle && (
               <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-medium text-surface-400 uppercase tracking-wider">
+                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                   Status
                 </label>
                 <select
@@ -465,14 +468,14 @@ export default function VehiclesPage() {
               type="button"
               onClick={closeModal}
               disabled={submitting}
-              className="px-4 py-2.5 rounded-lg border border-surface-700 text-surface-300 font-medium text-sm hover:bg-surface-800 transition-all"
+              className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2 disabled:opacity-50"
             >
               {submitting && <Loader2 size={16} className="animate-spin" />}
               {editingVehicle ? 'Update Vehicle' : 'Create Vehicle'}
@@ -490,14 +493,14 @@ export default function VehiclesPage() {
       >
         <div className="space-y-4">
           {deleteError && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            <div className="rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger font-medium">
               {deleteError}
             </div>
           )}
 
-          <p className="text-sm text-surface-300">
+          <p className="text-sm text-text-muted font-medium">
             Are you sure you want to delete{' '}
-            <span className="font-semibold text-white">{deleteTarget?.registrationNo}</span>
+            <span className="font-semibold text-text-primary">{deleteTarget?.registrationNo}</span>
             {deleteTarget?.nameModel && (
               <> ({deleteTarget.nameModel})</>
             )}
@@ -509,7 +512,7 @@ export default function VehiclesPage() {
               type="button"
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
-              className="px-4 py-2.5 rounded-lg border border-surface-700 text-surface-300 font-medium text-sm hover:bg-surface-800 transition-all"
+              className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all"
             >
               Cancel
             </button>
@@ -517,7 +520,7 @@ export default function VehiclesPage() {
               type="button"
               onClick={confirmDelete}
               disabled={deleting}
-              className="px-4 py-2.5 rounded-lg bg-red-500/10 text-red-400 font-medium text-sm hover:bg-red-500/20 transition-all inline-flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-danger/10 text-danger font-medium text-sm hover:bg-danger/20 transition-all inline-flex items-center gap-2 disabled:opacity-50"
             >
               {deleting && <Loader2 size={16} className="animate-spin" />}
               Delete

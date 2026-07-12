@@ -7,6 +7,9 @@ import {
   Download,
   Loader2,
   AlertCircle,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -28,8 +31,8 @@ import DataTable, { type Column } from '../components/DataTable';
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass rounded-lg px-3 py-2 text-xs">
-      <p className="text-surface-300 font-medium">{label}</p>
+    <div className="card px-4 py-3 text-sm">
+      <p className="text-text-muted font-medium mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
         <p key={i} style={{ color: entry.color }} className="font-semibold">
           {entry.name}:{' '}
@@ -74,7 +77,7 @@ const renderCustomLabel = ({
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 
-const PIE_COLORS = ['#34d399', '#60a5fa', '#fbbf24']; // emerald-400, blue-400, amber-400
+const PIE_COLORS = ['var(--accent)', '#a39f96', '#dedad1'];
 
 const reportColumns: Column<VehicleReport>[] = [
   {
@@ -226,16 +229,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       {/* ── Header ───────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-surface-50 lg:text-3xl">Dashboard</h1>
-          <p className="mt-1 text-sm text-surface-400">{getGreeting()}! Here's your fleet overview.</p>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-xs text-text-muted font-medium">{getGreeting()}! Here's your fleet overview.</p>
         </div>
 
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary-500/20 px-5 py-2.5 text-sm font-semibold text-primary-300 transition hover:bg-primary-500/30 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-accent/10 px-5 py-2.5 text-sm font-semibold text-accent transition hover:bg-accent/20 disabled:opacity-50"
         >
           {exporting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -248,46 +251,66 @@ export default function DashboardPage() {
 
       {/* ── KPI Cards ────────────────────────────────────────────── */}
       {kpis && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
-            label="Active Fleet"
-            value={kpis.vehicles.totalActiveFleet}
-            icon={<Truck size={24} />}
-          />
-          <KPICard
-            label="Available Vehicles"
-            value={kpis.vehicles.available}
-            icon={<Truck size={24} />}
-          />
-          <KPICard
-            label="In Maintenance"
-            value={kpis.vehicles.inShop}
-            icon={<Wrench size={24} />}
+            label="Fleet Utilization"
+            value={`${kpis.fleetUtilization}%`}
+            icon={<Activity size={18} />}
+            isHero={true}
+            accentColor="blue"
+            subtitle="Overall efficiency"
+            subtitleIcon={<CheckCircle2 size={14} />}
           />
           <KPICard
             label="Active Trips"
             value={kpis.trips.active}
-            icon={<Route size={24} />}
+            icon={<Route size={18} />}
+            isHero={true}
+            accentColor="blue"
+            subtitle="Currently en route"
+            subtitleIcon={<Activity size={14} />}
+          />
+          <KPICard
+            label="Available Vehicles"
+            value={kpis.vehicles.available}
+            icon={<Truck size={18} />}
+            accentColor="green"
+            subtitle="Ready to go"
+            subtitleIcon={<CheckCircle2 size={14} />}
+          />
+          <KPICard
+            label="In Maintenance"
+            value={kpis.vehicles.inShop}
+            icon={<Wrench size={18} />}
+            accentColor="amber"
+            subtitle="Requires action"
+            subtitleIcon={<AlertTriangle size={14} />}
           />
           <KPICard
             label="Pending Trips"
             value={kpis.trips.pending}
-            icon={<Route size={24} />}
+            icon={<Route size={18} />}
+            accentColor="amber"
+            subtitle="Awaiting dispatch"
+            subtitleIcon={<Clock size={14} />}
           />
           <KPICard
-            label="Fleet Utilization"
-            value={`${kpis.fleetUtilization}%`}
-            icon={<Activity size={24} />}
+            label="Total Active Fleet"
+            value={kpis.vehicles.totalActiveFleet}
+            icon={<Truck size={18} />}
+            accentColor="none"
+            subtitle="All time"
+            subtitleIcon={<Activity size={14} />}
           />
         </div>
       )}
 
       {/* ── Charts Row ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Vehicle Status Pie Chart */}
-        <div className="glass rounded-2xl p-6">
-          <h2 className="mb-4 text-lg font-semibold text-surface-100">Vehicle Status</h2>
-          <div className="h-72">
+        <div className="card p-5">
+          <h2 className="mb-4 text-sm font-semibold text-text-primary tracking-wide">Vehicle Status</h2>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -326,11 +349,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Operational Cost Bar Chart */}
-        <div className="glass rounded-2xl p-6">
-          <h2 className="mb-4 text-lg font-semibold text-surface-100">
+        <div className="card p-5">
+          <h2 className="mb-4 text-sm font-semibold text-text-primary tracking-wide">
             Top 5 Vehicles by Operational Cost
           </h2>
-          <div className="h-72">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} barCategoryGap="20%">
                 <XAxis
@@ -349,8 +372,8 @@ export default function DashboardPage() {
                 <Bar
                   dataKey="cost"
                   name="Op. Cost"
-                  fill="#60a5fa"
-                  radius={[6, 6, 0, 0]}
+                  fill="var(--accent)"
+                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -359,8 +382,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Reports Table ────────────────────────────────────────── */}
-      <div className="glass rounded-2xl p-6">
-        <h2 className="mb-4 text-lg font-semibold text-surface-100">Vehicle Reports</h2>
+      <div className="card p-5">
+        <h2 className="mb-4 text-sm font-semibold text-text-primary tracking-wide">Vehicle Reports</h2>
         <DataTable<VehicleReport> columns={reportColumns} data={reports} />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Wrench, CheckCircle, AlertCircle, Pencil } from 'lucide-react';
+import { Plus, Search, Filter, Loader2, Wrench, CheckCircle, AlertCircle, Pencil } from 'lucide-react';
 import { getMaintenanceLogs, createMaintenanceLog, completeMaintenance, updateMaintenanceLog, type MaintenanceLog, type CreateMaintenanceData } from '../api/maintenance';
 import { getVehicles, type Vehicle } from '../api/vehicles';
 import DataTable, { type Column } from '../components/DataTable';
@@ -17,7 +17,7 @@ const SERVICE_TYPES = [
 ];
 
 const inputClass =
-  'w-full px-4 py-2.5 rounded-lg bg-surface-900/80 border border-surface-700 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all text-sm';
+  'w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm';
 
 const emptyForm = {
   vehicleId: '',
@@ -34,6 +34,13 @@ export default function MaintenancePage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+
+  const filteredLogs = logs.filter(log => 
+    (log.vehicle?.registrationNo || '').toLowerCase().includes(search.toLowerCase()) || 
+    log.serviceType.toLowerCase().includes(search.toLowerCase()) ||
+    log.description.toLowerCase().includes(search.toLowerCase())
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<MaintenanceLog | null>(null);
@@ -142,7 +149,7 @@ export default function MaintenancePage() {
       key: 'vehicleId',
       header: 'Vehicle',
       render: (row) => (
-        <span className="font-mono text-surface-100">
+        <span className="font-mono text-text-muted">
           {row.vehicle?.registrationNo ?? row.vehicleId}
         </span>
       ),
@@ -191,9 +198,9 @@ export default function MaintenancePage() {
                   e.stopPropagation();
                   handleComplete(row.id);
                 }}
-                className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-all inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-md bg-success/10 text-success text-xs font-medium hover:bg-success/20 transition-all inline-flex items-center gap-1.5"
               >
-                <CheckCircle size={14} />
+                <CheckCircle size={14} className="stroke-[2.5]" />
                 Complete
               </button>
             )}
@@ -202,7 +209,7 @@ export default function MaintenancePage() {
                 e.stopPropagation();
                 openEdit(row);
               }}
-              className="p-1.5 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
               title="Edit"
             >
               <Pencil size={16} />
@@ -219,8 +226,8 @@ export default function MaintenancePage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-brand-400" />
-          <p className="text-surface-400 text-sm">Loading maintenance logs…</p>
+          <Loader2 className="h-10 w-10 animate-spin text-accent" />
+          <p className="text-text-muted text-sm font-medium">Loading maintenance logs…</p>
         </div>
       </div>
     );
@@ -231,12 +238,12 @@ export default function MaintenancePage() {
   if (error && logs.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="glass flex flex-col items-center gap-4 rounded-2xl p-8 text-center">
-          <AlertCircle className="h-10 w-10 text-red-400" />
-          <p className="text-surface-200 font-medium">{error}</p>
+        <div className="card flex flex-col items-center gap-4 p-8 text-center border-danger/20">
+          <AlertCircle className="h-10 w-10 text-danger" />
+          <p className="text-text-primary font-medium">{error}</p>
           <button
             onClick={() => fetchData()}
-            className="mt-2 rounded-lg bg-brand-500/20 px-5 py-2 text-sm font-semibold text-brand-300 transition hover:bg-brand-500/30"
+            className="mt-2 rounded-lg bg-accent/20 px-5 py-2 text-sm font-semibold text-accent transition hover:bg-accent/30"
           >
             Retry
           </button>
@@ -252,29 +259,52 @@ export default function MaintenancePage() {
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-            <Wrench className="h-5 w-5 text-amber-400" />
+          <div className="p-2 rounded-xl bg-warning/10">
+            <Wrench className="text-warning" size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-surface-50 lg:text-3xl">Maintenance</h1>
-            <p className="text-sm text-surface-400">Track vehicle service and repair logs</p>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold text-text-primary tracking-tight">Maintenance</h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-semibold">
+                {logs.length} total
+              </span>
+            </div>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Track vehicle service and repair logs</p>
           </div>
         </div>
 
         {!isReadOnly && (
           <button
             onClick={openCreate}
-            className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2"
+            className="px-5 py-2 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2 shadow-sm"
           >
-            <Plus size={18} />
+            <Plus size={16} className="stroke-[2.5]" />
             Log Maintenance
           </button>
         )}
       </div>
 
+      {/* ── Search & Filters ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Search by vehicle, service type, or description..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all text-sm shadow-sm"
+          />
+        </div>
+        <button className="px-4 py-2 rounded-lg bg-bg-surface border border-border-theme text-text-primary font-medium text-sm hover:bg-bg-elevated transition-colors inline-flex items-center gap-2 shadow-sm whitespace-nowrap">
+          <Filter size={16} className="text-text-muted stroke-[2]" />
+          Filters
+        </button>
+      </div>
+
       {/* ── Inline error banner ────────────────────────────────────── */}
       {error && (
-        <div className="flex items-center gap-3 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+        <div className="flex items-center gap-3 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger font-medium">
           <AlertCircle size={16} />
           {error}
         </div>
@@ -283,7 +313,7 @@ export default function MaintenancePage() {
       {/* ── Data Table ─────────────────────────────────────────────── */}
       <DataTable<MaintenanceLog>
         columns={columns}
-        data={logs}
+        data={filteredLogs}
         emptyMessage="No maintenance logs found"
       />
 
@@ -292,7 +322,7 @@ export default function MaintenancePage() {
         <form onSubmit={handleSave} className="space-y-4">
           {/* Vehicle */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Vehicle</label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Vehicle</label>
             <select
               value={form.vehicleId}
               onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
@@ -311,7 +341,7 @@ export default function MaintenancePage() {
 
           {/* Service Type */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Service Type</label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Service Type</label>
             <select
               value={form.serviceType}
               onChange={(e) => setForm({ ...form, serviceType: e.target.value })}
@@ -330,7 +360,7 @@ export default function MaintenancePage() {
           {/* Cost + Date row */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Cost (₹)</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Cost (₹)</label>
               <input
                 type="number"
                 min={0}
@@ -343,7 +373,7 @@ export default function MaintenancePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Service Date</label>
+              <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Service Date</label>
               <input
                 type="date"
                 value={form.serviceDate}
@@ -356,7 +386,7 @@ export default function MaintenancePage() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Description</label>
+            <label className="block text-sm font-semibold tracking-wide text-text-muted mb-1.5">Description</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -372,16 +402,16 @@ export default function MaintenancePage() {
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2.5 rounded-lg text-sm font-medium text-surface-300 hover:text-white hover:bg-surface-800 transition-colors"
+              className="px-4 py-2.5 rounded-lg border border-border-theme text-text-muted font-medium text-sm hover:bg-bg-elevated hover:text-text-primary transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-500 text-white font-medium text-sm hover:from-brand-500 hover:to-brand-400 transition-all shadow-lg shadow-brand-500/25 inline-flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-accent text-[#F5F5F6] font-medium text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2 disabled:opacity-50"
             >
-              {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} className="stroke-[2.5]" />}
               {submitting ? 'Saving…' : editingLog ? 'Save Changes' : 'Log Maintenance'}
             </button>
           </div>

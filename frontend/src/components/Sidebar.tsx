@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Truck, Users, Route, Wrench, Fuel, LogOut } from 'lucide-react';
+import { LayoutDashboard, Truck, Users, Route, Wrench, Fuel, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -13,18 +14,19 @@ const navItems = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-950 border-r border-surface-800 flex flex-col z-40">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-bg-surface border-r border-border-theme flex flex-col z-40 transition-colors duration-200">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-surface-800">
+      <div className="px-6 py-5 border-b border-border-theme">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center shadow-sm">
             <Truck size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white tracking-tight">TransitOps</h1>
-            <p className="text-[10px] text-surface-500 uppercase tracking-widest">Fleet Manager</p>
+            <h1 className="text-base font-bold text-text-primary tracking-tight">TransitOps</h1>
+            <p className="text-[10px] text-text-muted uppercase tracking-widest font-medium">Fleet Manager</p>
           </div>
         </div>
       </div>
@@ -38,35 +40,46 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
-                  : 'text-surface-400 hover:text-surface-200 hover:bg-surface-900 border border-transparent'
+                  ? 'bg-bg-elevated text-accent border-l-2 border-accent'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-elevated border-l-2 border-transparent'
               }`
             }
           >
-            <item.icon size={18} />
+            <item.icon size={18} className="stroke-[1.5]" />
             {item.label}
           </NavLink>
         ))}
       </nav>
 
-      {/* User section */}
-      <div className="px-4 py-4 border-t border-surface-800">
+      {/* User & Theme section */}
+      <div className="px-4 py-4 border-t border-border-theme">
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-xs text-text-muted font-medium">Theme</span>
+          <button 
+            onClick={toggleTheme}
+            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
+            title="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
+
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+          <div className="w-8 h-8 rounded-full bg-bg-elevated border border-border-theme flex items-center justify-center text-xs font-bold text-text-primary">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-surface-200 truncate">{user?.name}</p>
-            <p className="text-[10px] text-surface-500 uppercase tracking-wider">
+            <p className="text-sm font-medium text-text-primary truncate">{user?.name}</p>
+            <p className="text-[10px] text-text-muted uppercase tracking-wider font-medium">
               {user?.role?.replace(/_/g, ' ')}
             </p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
         >
-          <LogOut size={16} />
+          <LogOut size={16} className="stroke-[1.5]" />
           Sign Out
         </button>
       </div>

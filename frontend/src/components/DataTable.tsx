@@ -44,47 +44,47 @@ export default function DataTable<T extends Record<string, any>>({ columns, data
 
   if (data.length === 0) {
     return (
-      <div className="glass rounded-xl p-12 text-center">
-        <p className="text-surface-500 text-sm">{emptyMessage}</p>
+      <div className="card p-12 text-center">
+        <p className="text-text-muted text-sm font-medium">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
-    <div className="glass rounded-xl overflow-hidden">
+    <div className="card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-surface-800">
+            <tr className="border-b border-border-theme">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => col.sortable !== false && handleSort(col.key)}
-                  className={`px-5 py-3.5 text-left text-xs font-semibold text-surface-400 uppercase tracking-wider ${
-                    col.sortable !== false ? 'cursor-pointer hover:text-surface-200 select-none' : ''
+                  className={`px-5 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
+                    col.sortable !== false ? 'cursor-pointer hover:text-text-primary select-none' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {col.header}
                     {sortKey === col.key && (
-                      sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      sortDir === 'asc' ? <ChevronUp size={14} className="stroke-[2.5]" /> : <ChevronDown size={14} className="stroke-[2.5]" />
                     )}
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-surface-800/50">
+          <tbody className="divide-y divide-border-theme">
             {sorted.map((item, i) => (
               <tr
                 key={(item as any).id || i}
                 onClick={() => onRowClick?.(item)}
                 className={`transition-colors duration-150 ${
-                  onRowClick ? 'cursor-pointer hover:bg-surface-800/40' : ''
+                  onRowClick ? 'cursor-pointer hover:bg-bg-elevated' : ''
                 }`}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-5 py-3.5 text-sm text-surface-300 whitespace-nowrap">
+                  <td key={col.key} className="px-5 py-4 text-[13px] text-text-primary font-medium whitespace-nowrap">
                     {col.render ? col.render(item) : (item as any)[col.key]}
                   </td>
                 ))}
