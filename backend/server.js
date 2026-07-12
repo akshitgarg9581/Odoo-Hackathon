@@ -1,29 +1,24 @@
 const express = require('express');
 const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
+const authRoutes = require('./routes/auth.routes');
+const vehicleRoutes = require('./routes/vehicle.routes');
+const driverRoutes = require('./routes/driver.routes');
+
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/auth', authRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/drivers', driverRoutes);
+
 // Health check endpoint
 app.get('/', (req, res) => {
     res.json({ message: 'TransitOps API is running!' });
-});
-
-// GET all Vehicles
-app.get('/api/vehicles', async (req, res) => {
-    try {
-        const vehicles = await prisma.vehicle.findMany();
-        res.json(vehicles);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch vehicles' });
-    }
 });
 
 app.listen(PORT, () => {
