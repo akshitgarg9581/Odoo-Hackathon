@@ -77,7 +77,7 @@ const renderCustomLabel = ({
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 
-const PIE_COLORS = ['var(--accent)', '#a39f96', '#dedad1'];
+const PIE_COLORS = ['var(--accent)', 'var(--warning)', 'var(--danger)'];
 
 const reportColumns: Column<VehicleReport>[] = [
   {
@@ -109,7 +109,7 @@ const reportColumns: Column<VehicleReport>[] = [
     header: 'ROI',
     render: (row) =>
       row.roi !== null ? (
-        <span>{row.roi.toFixed(1)}%</span>
+        <span>{(row.roi * 100).toFixed(2)}%</span>
       ) : (
         <span className="text-surface-500 italic">N/A</span>
       ),

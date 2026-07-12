@@ -174,7 +174,7 @@ export default function MaintenancePage() {
       key: 'description',
       header: 'Description',
       render: (row) => (
-        <span className="max-w-[200px] truncate block" title={row.description}>
+        <span className="block break-words whitespace-normal min-w-[200px] text-sm text-text-muted leading-relaxed" title={row.description}>
           {row.description}
         </span>
       ),
