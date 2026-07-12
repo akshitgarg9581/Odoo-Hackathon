@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const prisma = new PrismaClient();
+const VALID_ROLES = ['FLEET_MANAGER', 'DRIVER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST'];
 
 const signup = async (req, res) => {
     try {
@@ -18,6 +19,9 @@ const signup = async (req, res) => {
         if (password.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters long" });
         
         if (!role) return res.status(400).json({ error: "Role is required" });
+        if (!VALID_ROLES.includes(role)) {
+            return res.status(400).json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` });
+        }
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -31,9 +35,14 @@ const signup = async (req, res) => {
             data: { name, email, passwordHash, role }
         });
 
+        if (!process.env.JWT_SECRET) {
+            console.error("CRITICAL: JWT_SECRET is not set.");
+            return res.status(500).json({ error: "Internal server error" });
+        }
+
         const token = jwt.sign(
             { id: newUser.id, role: newUser.role },
-            process.env.JWT_SECRET || 'supersecret',
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
@@ -61,9 +70,14 @@ const login = async (req, res) => {
             return res.status(400).json({ error: "Invalid credentials" });
         }
 
+        if (!process.env.JWT_SECRET) {
+            console.error("CRITICAL: JWT_SECRET is not set.");
+            return res.status(500).json({ error: "Internal server error" });
+        }
+
         const token = jwt.sign(
             { id: user.id, role: user.role },
-            process.env.JWT_SECRET || 'supersecret',
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 

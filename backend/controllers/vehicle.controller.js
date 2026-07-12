@@ -75,13 +75,51 @@ const getVehicleById = async (req, res) => {
 
 const updateVehicle = async (req, res) => {
     try {
+        const { nameModel, type, maxLoadCapacity, odometer, acquisitionCost, status } = req.body;
+        
+        const updateData = {};
+        if (nameModel) updateData.nameModel = nameModel;
+        if (type) updateData.type = type;
+        if (status) {
+            const VALID_STATUSES = ['AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED'];
+            if (!VALID_STATUSES.includes(status)) {
+                return res.status(400).json({ error: "Invalid status enum value." });
+            }
+            updateData.status = status;
+        }
+        
+        if (maxLoadCapacity !== undefined) {
+            const num = parseFloat(maxLoadCapacity);
+            if (isNaN(num) || num <= 0) return res.status(400).json({ error: "Invalid max load capacity" });
+            updateData.maxLoadCapacity = num;
+        }
+
+        if (odometer !== undefined) {
+            const num = parseFloat(odometer);
+            if (isNaN(num) || num < 0) return res.status(400).json({ error: "Invalid odometer" });
+            updateData.odometer = num;
+        }
+
+        if (acquisitionCost !== undefined) {
+            const num = parseFloat(acquisitionCost);
+            if (isNaN(num) || num < 0) return res.status(400).json({ error: "Invalid acquisition cost" });
+            updateData.acquisitionCost = num;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ error: "No valid fields provided for update" });
+        }
+
         const vehicle = await prisma.vehicle.update({
             where: { id: req.params.id },
-            data: req.body
+            data: updateData
         });
         res.json(vehicle);
     } catch (error) {
         console.error(error);
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -92,6 +130,9 @@ const deleteVehicle = async (req, res) => {
         res.json({ message: "Vehicle deleted successfully" });
     } catch (error) {
         console.error(error);
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
         res.status(500).json({ error: "Internal server error" });
     }
 };
