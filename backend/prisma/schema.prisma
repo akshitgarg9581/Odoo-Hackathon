@@ -37,17 +37,19 @@ enum VehicleStatus {
 }
 
 model Vehicle {
-  id               String        @id @default(uuid())
-  registrationNo   String        @unique
+  id               String           @id @default(uuid())
+  registrationNo   String           @unique
   nameModel        String
   type             String
   maxLoadCapacity  Float
   odometer         Float
   acquisitionCost  Float
-  status           VehicleStatus @default(AVAILABLE)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  status           VehicleStatus    @default(AVAILABLE)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   trips            Trip[]
+  maintenanceLogs  MaintenanceLog[]
+  fuelLogs         FuelLog[]
 
   @@map("vehicles")
 }
@@ -92,6 +94,7 @@ model Trip {
   plannedDistance Float
   actualDistance  Float?
   fuelConsumed    Float?
+  revenue         Float?
   status          TripStatus @default(DRAFT)
   dispatchTime    DateTime?
   completeTime    DateTime?
@@ -103,4 +106,40 @@ model Trip {
   driver  Driver  @relation(fields: [driverId], references: [id])
 
   @@map("trips")
+}
+
+enum MaintenanceStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model MaintenanceLog {
+  id          String            @id @default(uuid())
+  vehicleId   String
+  serviceType String
+  cost        Float
+  serviceDate DateTime
+  description String
+  status      MaintenanceStatus @default(IN_PROGRESS)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@map("maintenance_logs")
+}
+
+model FuelLog {
+  id              String   @id @default(uuid())
+  vehicleId       String
+  fillDate        DateTime
+  quantity        Float
+  totalCost       Float
+  odometerReading Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@map("fuel_logs")
 }

@@ -88,7 +88,7 @@ const dispatchTrip = async (req, res) => {
 const completeTrip = async (req, res) => {
   try {
     const { id } = req.params;
-    const { actualDistance, fuelConsumed } = req.body;
+    const { actualDistance, fuelConsumed, revenue } = req.body;
 
     if (actualDistance === undefined || fuelConsumed === undefined) {
       return res.status(400).json({ error: "actualDistance and fuelConsumed are required to complete a trip" });
@@ -105,7 +105,8 @@ const completeTrip = async (req, res) => {
           status: 'COMPLETED',
           completeTime: new Date(),
           actualDistance: parseFloat(actualDistance),
-          fuelConsumed: parseFloat(fuelConsumed)
+          fuelConsumed: parseFloat(fuelConsumed),
+          revenue: revenue !== undefined ? parseFloat(revenue) : null
         }
       });
 
